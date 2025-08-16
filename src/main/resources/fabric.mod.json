@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "favorite_items",
+	"version": "${version}",
+	"name": "Favorite Items",
+	"description": "A client-side mod that prevents you from accidentally dropping valuable items from your inventory",
+	"authors": [
+		"JustJabka"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/favorite-items",
+		"sources": "https://github.com/JustJabka/favorite-items",
+        "issues": "https://github.com/JustJabka/favorite-items/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/favorite_items/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"justjabka.favorite_items.FavoriteItems"
+		],
+		"client": [
+			"justjabka.favorite_items.FavoriteItemsClient"
+		]
+	},
+	"mixins": [
+		"favorite_items.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
