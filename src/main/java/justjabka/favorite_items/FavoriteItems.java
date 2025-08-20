@@ -11,6 +11,6 @@ public class FavoriteItems implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Hello fabric world!");
+		LOGGER.info("Hello Fabric world!");
 	}
 }

@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static justjabka.favorite_items.FavoriteItems.LOGGER;
 
@@ -65,31 +67,40 @@ public class FavoriteItemsStorage {
     public static void add(ItemStack stack) {
             FAVORITES.add(serializeItem(stack));
             saveFavorites();
-        }
+    }
 
-        public static void remove(ItemStack stack) {
-            FAVORITES.remove(serializeItem(stack));
-            saveFavorites();
-        }
+    public static void remove(ItemStack stack) {
+        FAVORITES.remove(serializeItem(stack));
+        saveFavorites();
+    }
 
-        public static boolean isFavorite(ItemStack stack) {
-            return FAVORITES.contains(serializeItem(stack));
-        }
+    public static boolean isFavorite(ItemStack stack) {
+        return FAVORITES.contains(serializeItem(stack));
+    }
 
-        public static void removeInvalid(ClientPlayerEntity player) {
-            if (player == null) return;
+    public static void removeInvalid(ClientPlayerEntity player) {
+        Set<String> stillValid = Stream.concat(
+                        // Inventory, Armor and Offhand
+                        Stream.concat(
+                                player.getInventory().main.stream(),
+                                Stream.concat(
+                                        player.getInventory().armor.stream(),
+                                        Stream.of(player.getOffHandStack())
+                                )
+                        ),
+                        // Cursor (only if screen is open)
+                        player.currentScreenHandler != null
+                                ? Stream.of(player.currentScreenHandler.getCursorStack())
+                                : Stream.empty()
+                )
+                .filter(stack -> !stack.isEmpty())
+                .map(FavoriteItemsStorage::serializeItem)
+                .collect(Collectors.toSet());
 
-            Set<String> currentStacks = new HashSet<>();
-            for (ItemStack stack : player.getInventory().main) {
-                if (!stack.isEmpty()) currentStacks.add(serializeItem(stack));
-            }
+        FAVORITES.removeIf(fav -> !stillValid.contains(fav));
+    }
 
-            if (FAVORITES.removeIf(key -> !currentStacks.contains(key))) {
-                saveFavorites();
-            }
-        }
-
-        private static String serializeItem(ItemStack stack) {
+    private static String serializeItem(ItemStack stack) {
             NbtCompound tag = stack.getOrCreateNbt().copy();
             tag.remove("Damage"); // Ignoring Damage NBT
 
