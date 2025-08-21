@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ClientPlayerEntity.class)
 public class ClientPlayerEntityMixin {
     @Inject(at = @At("HEAD"), method = "dropSelectedItem", cancellable = true)
-    public void dropSelectedItem(boolean entireStack, CallbackInfoReturnable<Boolean> cir){
+    public void dropSelectedItem(boolean entireStack, CallbackInfoReturnable<Boolean> cir) {
         ItemStack selected = ((ClientPlayerEntity) (Object) this).getMainHandStack();
 
         if (FavoriteItemsStorage.isFavorite(selected)) {

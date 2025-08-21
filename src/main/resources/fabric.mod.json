@@ -16,9 +16,6 @@
 	"icon": "assets/favorite_items/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
-			"justjabka.favorite_items.FavoriteItems"
-		],
 		"client": [
 			"justjabka.favorite_items.FavoriteItemsClient"
 		]

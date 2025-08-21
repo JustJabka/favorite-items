@@ -23,30 +23,31 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static justjabka.favorite_items.FavoriteItems.LOGGER;
+import static justjabka.favorite_items.FavoriteItemsClient.MOD_ID;
+import static justjabka.favorite_items.FavoriteItemsClient.LOGGER;
 
 @Environment(EnvType.CLIENT)
 public class FavoriteItemsStorage {
-        private static final Set<String> FAVORITES = new HashSet<>();
-        private static Path saveFile;
+    private static final Set<String> FAVORITES = new HashSet<>();
+    private static Path saveFile;
 
-        public static void init(MinecraftClient client) {
-            String fileName = getString(client);
+    public static void init(MinecraftClient client) {
+        String fileName = getString(client);
 
-            saveFile = FabricLoader.getInstance().getConfigDir()
-                    .resolve(FavoriteItems.MOD_ID)
-                    .resolve(fileName);
+        saveFile = FabricLoader.getInstance().getConfigDir()
+                .resolve(MOD_ID)
+                .resolve(fileName);
 
-            try {
-                Files.createDirectories(saveFile.getParent());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            loadFavorites();
-
-            LOGGER.info("Initializing client");
+        try {
+            Files.createDirectories(saveFile.getParent());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        loadFavorites();
+
+        LOGGER.info("Initializing client");
+    }
 
     private static @NotNull String getString(MinecraftClient client) {
         String fileName;
@@ -65,17 +66,17 @@ public class FavoriteItemsStorage {
     }
 
     public static void add(ItemStack stack) {
-            FAVORITES.add(serializeItem(stack));
-            saveFavorites();
+        FAVORITES.add(getStackId(stack));
+        saveFavorites();
     }
 
     public static void remove(ItemStack stack) {
-        FAVORITES.remove(serializeItem(stack));
+        FAVORITES.remove(getStackId(stack));
         saveFavorites();
     }
 
     public static boolean isFavorite(ItemStack stack) {
-        return FAVORITES.contains(serializeItem(stack));
+        return FAVORITES.contains(getStackId(stack));
     }
 
     public static void removeInvalid(ClientPlayerEntity player) {
@@ -94,43 +95,43 @@ public class FavoriteItemsStorage {
                                 : Stream.empty()
                 )
                 .filter(stack -> !stack.isEmpty())
-                .map(FavoriteItemsStorage::serializeItem)
+                .map(FavoriteItemsStorage::getStackId)
                 .collect(Collectors.toSet());
 
         FAVORITES.removeIf(fav -> !stillValid.contains(fav));
     }
 
-    private static String serializeItem(ItemStack stack) {
-            NbtCompound tag = stack.getOrCreateNbt().copy();
-            tag.remove("Damage"); // Ignoring Damage NBT
+    private static String getStackId(ItemStack stack) {
+        NbtCompound tag = stack.getOrCreateNbt().copy();
+        tag.remove("Damage"); // Ignoring Damage NBT
 
-            return Registries.ITEM.getId(stack.getItem()) + tag.toString();
-        }
+        return Registries.ITEM.getId(stack.getItem()) + tag.toString();
+    }
 
-        private static void loadFavorites() {
-            FAVORITES.clear();
-            if (saveFile == null || !Files.exists(saveFile)) return;
+    private static void loadFavorites() {
+        FAVORITES.clear();
+        if (saveFile == null || !Files.exists(saveFile)) return;
 
-            try (Reader reader = Files.newBufferedReader(saveFile)) {
-                JsonArray arr = JsonParser.parseReader(reader).getAsJsonArray();
-                for (JsonElement el : arr) {
-                    FAVORITES.add(el.getAsString());
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+        try (Reader reader = Files.newBufferedReader(saveFile)) {
+            JsonArray arr = JsonParser.parseReader(reader).getAsJsonArray();
+            for (JsonElement el : arr) {
+                FAVORITES.add(el.getAsString());
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 
-        private static void saveFavorites() {
-            if (saveFile == null) return;
+    private static void saveFavorites() {
+        if (saveFile == null) return;
 
-            try (Writer writer = Files.newBufferedWriter(saveFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                JsonArray arr = new JsonArray();
-                for (String s : FAVORITES) arr.add(s);
-                Gson gson = new Gson();
-                gson.toJson(arr, writer);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try (Writer writer = Files.newBufferedWriter(saveFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            JsonArray arr = new JsonArray();
+            for (String s : FAVORITES) arr.add(s);
+            Gson gson = new Gson();
+            gson.toJson(arr, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 }
