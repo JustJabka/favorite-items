@@ -41,7 +41,7 @@ public class FavoriteItemsStorage {
         try {
             Files.createDirectories(saveFile.getParent());
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(String.valueOf(e));
         }
 
         loadFavorites();
@@ -118,7 +118,7 @@ public class FavoriteItemsStorage {
                 FAVORITES.add(el.getAsString());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(String.valueOf(e));
         }
     }
 
@@ -131,7 +131,7 @@ public class FavoriteItemsStorage {
             Gson gson = new Gson();
             gson.toJson(arr, writer);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(String.valueOf(e));
         }
     }
 }

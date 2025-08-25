@@ -14,11 +14,11 @@ public class FavoriteItemsClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         KeyInputHandler.registerKeyInputs();
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> FavoriteItemsStorage.init(client));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null) {
                 FavoriteItemsStorage.removeInvalid(client.player);
             }
         });
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> FavoriteItemsStorage.init(client));
     }
 }

@@ -11,6 +11,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,6 +21,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(HandledScreen.class)
 public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen {
+    @Shadow @Final protected T handler;
+
     @Inject(at = @At("TAIL"), method = "drawSlot")
     private void drawSlot(DrawContext ctx, Slot slot, CallbackInfo ci) {
         ItemStack stack = slot.getStack();
@@ -27,6 +30,16 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 
         int x = slot.x + 8;
         int y = slot.y - 1;
+        RenderUtil.renderFavIcon(ctx, x, y, 1f);
+    }
+
+    @Inject(method = "render", at = @At("TAIL"))
+    private void renderCursorSlot(DrawContext ctx, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+        ItemStack cursorStack = handler.getCursorStack();
+        if (cursorStack.isEmpty() || !FavoriteItemsStorage.isFavorite(cursorStack)) return;
+
+        int x = mouseX;
+        int y = mouseY - 8;
         RenderUtil.renderFavIcon(ctx, x, y, 1f);
     }
 
@@ -54,7 +67,7 @@ abstract class HandledScreenKeyMixin {
     @Shadow protected Slot focusedSlot;
 
     @Inject(at = @At("HEAD"), method = "keyPressed", cancellable = true)
-    private void toggleOnKey(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+    private void handleFavoriteItemKeybind(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
         if (!KeyInputHandler.lockItemKey.matchesKey(keyCode, scanCode)) return;
         if (focusedSlot == null || !focusedSlot.hasStack()) return;
 
